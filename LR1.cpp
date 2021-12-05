@@ -193,7 +193,7 @@ void e_closure(int T) {  //计算闭包
                         temp.part = 1;
                         temp.expc = buffer[k];
                         if (!is_in(temp, T))
-                            items[T][size_item[T]++] = temp;
+                            items[T][size_item[T]++] = temp;  //向项目集中添加新项目
                     }
                     bsize = 0;
                 }
@@ -220,6 +220,17 @@ int is_contained()
     return 0;
 }
 
+
+/*
+构造LR(1)分析表的算法。
+令每个Ik的下标k为分析表的状态，令含有[S′→·S, #]的Ik的k为分析器的初态
+动作ACTION子表和状态转换GOTO子表构造如下：
+1. 若项目[A→α·aβ, b]属于Ik且GO(Ik, a)＝Ij， a为终结符，则置ACTION[k, a]为 “sj”
+2. 若项目[A→α·，a]属于Ik，则置ACTION[k, a]为 “rj”；其中假定A→α为文法G′的第j个产生式
+3. 若项目[S′→S·, #]属于Ik，则置ACTION[k, #]为 “acc”
+4. 若GO(Ik，A)＝Ij，则置GOTO[k, A]=j
+5. 分析表中凡不能用规则1至4填入信息的空白栏均填上“出错标志”
+*/
 void go() {
 
     proj init;
@@ -251,7 +262,7 @@ void go() {
             if (buf_size != 0) {
                 Ccount++;
                 for (int t = 0; t < buf_size; t++) {
-                    items[Ccount][size_item[Ccount]++] = buf[t];
+                    items[Ccount][size_item[Ccount]++] = buf[t];  //向下一个项目集添加新项目
                 }
                 e_closure(Ccount);
                 int  next_state = is_contained();        //看生成的项目集是否已经在项目集族中了
