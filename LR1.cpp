@@ -341,12 +341,12 @@ void get_action() {
 
     for (int i = 0; i <= Ccount; i++)         //*************  i must <= Ccount !!!!!!!!!!!!!! ***********
         for (int j = 0; j < size_item[i]; j++)
-            if (items[i][j].part == length[items[i][j].formula_numb]) {
+            if (items[i][j].part == length[items[i][j].formula_numb]) {  //规约项目
                 action_table[i][size_act_table[i]].ch = items[i][j].expc;
                 action_table[i][size_act_table[i]++].nxt_sta = items[i][j].formula_numb * (-1);
             }
 
-    for (int i = 0; i < size_trans; i++) {
+    for (int i = 0; i < size_trans; i++) {  //移进项目
         int    t1 = trans[i].beg;
         int    t2 = trans[i].nex;
         char   tp = trans[i].ch;
@@ -408,7 +408,7 @@ int main() {
             if (action_table[work_sta][i].ch == buffer[index_buf]) {
                 err = false;
                 if (action_table[work_sta][i].nxt_sta == 0) {  //Accept
-                    cout << "Accept!!!" << endl;
+                    cout << "ACCEPT √" << endl;
                     done = true;
                     break;
                 }
@@ -419,7 +419,7 @@ int main() {
                 }
                 else {   //Reduce
                     int tp = action_table[work_sta][i].nxt_sta * (-1);    //用来归约的产生式编号
-                    cout << G[tp] << endl;
+                    cout << G[tp][0] <<"->"<<G[tp][1]<< G[tp][2] << G[tp][3] << G[tp][4]<<endl;
                     for (int k = 0; k < length[tp] - 1; k++)
                         s.pop();
                     --index_buf;
@@ -431,7 +431,7 @@ int main() {
     } while (done == false && err == false);
 
     if (!done)
-        cout << "Please check input!!!" << endl;
+        cout << "ERROR X" << endl;
     G_ifile.close();
     input_ifile.close();
     items_ofile.close();
