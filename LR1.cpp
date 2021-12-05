@@ -1,8 +1,8 @@
-/*
-  Name: LR(1)·ÖÎöÆ÷µÄ¹¹Ôì
-  Author: Â¦ÌìÓî
+ï»¿/*
+  Name: LR(1)åˆ†æå™¨çš„æ„é€ 
+  Author: å¨„å¤©å®‡
   Date: 07-06-07
-¡¡Description:¶ÔÈÎÒâ¸ø¶¨µÄÎÄ·¨G¹¹ÔìLR(1)ÏîÄ¿¼¯¹æ·¶×åºÍ·ÖÎö±í,²¢¶ÔÊäÈëµÄ¾ä×Ó½øĞĞÓï·¨·ÖÎö
+ã€€Description:å¯¹ä»»æ„ç»™å®šçš„æ–‡æ³•Gæ„é€ LR(1)é¡¹ç›®é›†è§„èŒƒæ—å’Œåˆ†æè¡¨,å¹¶å¯¹è¾“å…¥çš„å¥å­è¿›è¡Œè¯­æ³•åˆ†æ
 */
 #include"iostream"
 #include"fstream"
@@ -18,9 +18,10 @@ int  size_vn = 0;
 char str_vt[150];       //put all vt into it
 int  size_vt = 0;
 bool first_vn[30][150];
-char buffer[50];            //ÓÃÀ´´æ·ÅÉú³ÉCLOSURE(I)Ê±ĞèÒªµÄfirst_set Ò²ÓÃÀ´¶ÁÈëÓÃ»§µÄÊäÈë´®
+char buffer[50];            //ç”¨æ¥å­˜æ”¾ç”ŸæˆCLOSURE(I)æ—¶éœ€è¦çš„first_set ä¹Ÿç”¨æ¥è¯»å…¥ç”¨æˆ·çš„è¾“å…¥ä¸²
 int  bsize = 0;
-struct thri {
+
+struct thri {   //status transformation
     int beg;
     int nex;
     char ch;
@@ -29,20 +30,19 @@ struct thri {
 thri trans[200];
 int  size_trans = 0;
 
-//¶¨ÒåÏîÄ¿¼¯µÄĞÎÊ½
-
+//å®šä¹‰é¡¹ç›®é›†çš„å½¢å¼
 struct proj {
     int formula_numb;
     int part;
     char expc;
 };
 
-/*ÏîÄ¿¼¯*/
+/*é¡¹ç›®é›†*/
 proj    items[100][100];
 int     Ccount = 0;
 int     size_item[100];
 
-/*×´Ì¬×ª»»±í*/
+/*çŠ¶æ€è½¬æ¢è¡¨*/
 struct action {
     char    ch;
     int     nxt_sta;
@@ -51,10 +51,10 @@ struct action {
 action    action_table[100][100];
 int       size_act_table[100];
 
-ifstream  G_ifile;
-ifstream  input_ifile;
-ofstream  items_ofile;
-ofstream  act_ofile;
+ifstream  G_ifile;  //grammar file
+ifstream  input_ifile; //input text
+ofstream  items_ofile; //output LR1 items
+ofstream  act_ofile; //output action table
 
 void Read_G()
 {
@@ -72,7 +72,7 @@ void Read_G()
     }
 
     G[0][0] = 'S';
-    G[0][1] = G[1][0];  //ÍØ¹ãÎÄ·¨
+    G[0][1] = G[1][0];  //æ‹“å¹¿æ–‡æ³•
     length[0] = 2;
 
     for (int i = 0; i < 64; i++)
@@ -81,12 +81,21 @@ void Read_G()
     for (int i = 91; i < 128; i++)
         if (tempofinput[i])
             str_vt[size_vt++] = i;
-    for (int i = 65; i < 91; i++)  //65-91ÊÇ´óĞ´Ó¢ÎÄ×ÖÄ¸£¬×÷ÎªÖÕ½á·û
+    for (int i = 65; i < 91; i++)  //65-91æ˜¯å¤§å†™è‹±æ–‡å­—æ¯ï¼Œä½œä¸ºç»ˆç»“ç¬¦
         if (tempofinput[i])  
             str_vn[size_vn++] = i;
 }  
 
-void get_first() {  //¼ÆËãFirst¼¯ºÏ
+/*
+å¯¹æ¯ä¸€ä¸ªæ–‡æ³•ç¬¦å·Xè®¡ç®—FIRST(X)
+è‹¥XâˆˆVT, FIRST(X)={X}
+è‹¥XâˆˆVN, FIRST(X)={a|Xâ†’aâ€¦,aâˆˆVT}
+è‹¥XâˆˆVN, ä¸”æœ‰äº§ç”Ÿå¼X â†’Îµï¼Œåˆ™{Îµ} âˆˆ FIRST(X)
+è‹¥XâˆˆVN, ä¸”æœ‰äº§ç”Ÿå¼X â†’Y1Y2â€¦Ynï¼Œä¸”Y1Y2â€¦Ynâˆˆ VN
+å½“Y1 ï¼ŒY2 ï¼Œ â€¦ ï¼Œ Yi-1 â‡’ Îµ ï¼Œåˆ™FIRST(Y1)-{Îµ}, FIRST(Y2)-{Îµ}â€¦ FIRST(Yi-1)-{Îµ}, FIRST(Yi)éƒ½åŒ…å«åœ¨FIRST(X)ä¸­
+å½“Yi â‡’ Îµ(i=1,2â€¦n),å°†{Îµ}å¹¶å…¥FIRST(X)ä¸­
+*/
+void get_first() {  //è®¡ç®—Firsté›†åˆ
     bool flag1;
     do {
         flag1 = false;
@@ -95,7 +104,7 @@ void get_first() {  //¼ÆËãFirst¼¯ºÏ
             bool flag2;
             do {
                 flag2 = false;
-                if (G[i][t] >= 'A' && G[i][t] <= 'Z') {
+                if (G[i][t] >= 'A' && G[i][t] <= 'Z') { //è®¡ç®—éç»ˆç»“ç¬¦çš„firstå…ƒç´ é›†
                     for (int k = 0; k < 64; k++)
                         if (first_vn[G[i][t] - 'A'][k] && !first_vn[G[i][0] - 'A'][k]) {
                             first_vn[G[i][0] - 'A'][k] = true;
@@ -126,7 +135,7 @@ void get_first() {  //¼ÆËãFirst¼¯ºÏ
 
 }
 
-/*ÅĞ¶ÏÏîÄ¿Êı·ñÔÚÏîÄ¿¼¯Àï*/
+/*åˆ¤æ–­é¡¹ç›®æ•°å¦åœ¨é¡¹ç›®é›†é‡Œ*/
 bool is_in(proj temp, int T) {
     for (int i = 0; i < size_item[T]; i++)
         if (temp.formula_numb == items[T][i].formula_numb && temp.part == items[T][i].part && temp.expc == items[T][i].expc)
@@ -135,7 +144,7 @@ bool is_in(proj temp, int T) {
 
 }
 
-void  gete_expc(proj temp) {   //¼ÆËãLR1µÄÔ¤²âÏî
+void  gete_expc(proj temp) {   //è®¡ç®—LR1çš„é¢„æµ‹é¡¹
     bsize = 0;
     bool flag;
     int tt = temp.part;
@@ -146,12 +155,12 @@ void  gete_expc(proj temp) {   //¼ÆËãLR1µÄÔ¤²âÏî
             return;
 
         }
-        else if (G[temp.formula_numb][tt + 1] < 'A' || G[temp.formula_numb][tt + 1] > 'Z') {
+        else if (G[temp.formula_numb][tt + 1] < 'A' || G[temp.formula_numb][tt + 1] > 'Z') {  //éç»ˆç»“ç¬¦ç›´æ¥åŠ 
             buffer[bsize++] = G[temp.formula_numb][tt + 1];
             return;
         }
 
-        else if (G[temp.formula_numb][tt + 1] >= 'A' && G[temp.formula_numb][tt + 1] <= 'Z') {
+        else if (G[temp.formula_numb][tt + 1] >= 'A' && G[temp.formula_numb][tt + 1] <= 'Z') {  //ç»ˆç»“ç¬¦æ‰¾first_vn
             for (int i = 0; i < 64; i++) {
                 if (first_vn[G[temp.formula_numb][tt + 1] - 'A'][i])
                     buffer[bsize++] = i;
@@ -162,7 +171,7 @@ void  gete_expc(proj temp) {   //¼ÆËãLR1µÄÔ¤²âÏî
                     buffer[bsize++] = i;
             }
 
-            if (first_vn[G[temp.formula_numb][tt + 1] - 'A'][64]) {  //ASCII64 ÊÇ@£¬ÔÚ±¾³ÌĞòÖĞ@´ú±í¿ÕÏî¦Å
+            if (first_vn[G[temp.formula_numb][tt + 1] - 'A'][64]) {  //ASCII64 æ˜¯@ï¼Œåœ¨æœ¬ç¨‹åºä¸­@ä»£è¡¨ç©ºé¡¹Îµ
                 tt++;
                 flag = true;
             }
@@ -172,7 +181,7 @@ void  gete_expc(proj temp) {   //¼ÆËãLR1µÄÔ¤²âÏî
 
 
 
-void e_closure(int T) {  //¼ÆËã±Õ°ü
+void e_closure(int T) {  //è®¡ç®—é—­åŒ…
     for (int i = 0; i < size_item[T]; i++) {
         proj temp;
         if (G[items[T][i].formula_numb][items[T][i].part] >= 'A' && G[items[T][i].formula_numb][items[T][i].part] <= 'Z') {
@@ -196,7 +205,7 @@ void e_closure(int T) {  //¼ÆËã±Õ°ü
 int is_contained()
 {
     for (int i = 0; i < Ccount; i++) {
-        int s = 0;        //¼ÇÂ¼ÓĞ¶àÉÙÊÇÆ¥ÅäµÄ
+        int s = 0;        //è®°å½•æœ‰å¤šå°‘æ˜¯åŒ¹é…çš„
         if (size_item[i] == size_item[Ccount])
             for (int j = 0; j < size_item[Ccount]; j++) {
                 for (int k = 0; k < size_item[i]; k++)
@@ -245,7 +254,7 @@ void go() {
                     items[Ccount][size_item[Ccount]++] = buf[t];
                 }
                 e_closure(Ccount);
-                int  next_state = is_contained();        //¿´Éú³ÉµÄÏîÄ¿¼¯ÊÇ·ñÒÑ¾­ÔÚÏîÄ¿¼¯×åÖĞÁË
+                int  next_state = is_contained();        //çœ‹ç”Ÿæˆçš„é¡¹ç›®é›†æ˜¯å¦å·²ç»åœ¨é¡¹ç›®é›†æ—ä¸­äº†
                 if (next_state != 0) {
                     size_item[Ccount] = 0;
                     Ccount--;
@@ -266,7 +275,7 @@ void go() {
                     size_trans++;
                 }
             }
-        }                //¶ÔÎÄ·¨µÄÃ¿Ò»¸öÖÕ½á·û
+        }                //å¯¹æ–‡æ³•çš„æ¯ä¸€ä¸ªç»ˆç»“ç¬¦
 
         for (int j = 0; j < size_vn; j++) {
             proj    buf[50];
@@ -286,7 +295,7 @@ void go() {
                     items[Ccount][size_item[Ccount]++] = buf[t];
                 }
                 e_closure(Ccount);
-                int  next_state = is_contained();       //¿´Éú³ÉµÄÏîÄ¿¼¯ÊÇ·ñÒÑ¾­ÔÚÏîÄ¿¼¯×åÖĞÁË
+                int  next_state = is_contained();       //çœ‹ç”Ÿæˆçš„é¡¹ç›®é›†æ˜¯å¦å·²ç»åœ¨é¡¹ç›®é›†æ—ä¸­äº†
 
                 if (next_state != 0) {
                     size_item[Ccount] = 0;
@@ -309,7 +318,7 @@ void go() {
                 }
 
             }
-        }                //¶ÔÎÄ·¨µÄÃ¿Ò»¸ö·ÇÖÕ½á·û
+        }                //å¯¹æ–‡æ³•çš„æ¯ä¸€ä¸ªéç»ˆç»“ç¬¦
     }
 
 }
@@ -372,7 +381,7 @@ int main() {
     do {
         input_ifile >> buffer[bsize];
     } while (buffer[bsize++] != '#');
-    stack<pair<int, char> > s;    //Óï·¨¼ì²éÕ»
+    stack<pair<int, char> > s;    //è¯­æ³•æ£€æŸ¥æ ˆ
 
     int    work_sta = 0;
     int    index_buf = 0;
@@ -398,7 +407,7 @@ int main() {
                     break;
                 }
                 else {   //Reduce
-                    int tp = action_table[work_sta][i].nxt_sta * (-1);    //ÓÃÀ´¹éÔ¼µÄ²úÉúÊ½±àºÅ
+                    int tp = action_table[work_sta][i].nxt_sta * (-1);    //ç”¨æ¥å½’çº¦çš„äº§ç”Ÿå¼ç¼–å·
                     cout << G[tp] << endl;
                     for (int k = 0; k < length[tp] - 1; k++)
                         s.pop();
