@@ -340,12 +340,12 @@ void get_action() {
 
 int main() {
     for (int i = 0; i < 150; i++)
-        tempofinput[i] = false;
+        tempofinput[i] = false;  //to differ vt and vn
     for (int i = 0; i < 100; i++)
-        size_item[i] = 0;
+        size_item[i] = 0; //to store LR1 items
     for (int i = 0; i < 30; i++)
         for (int j = 0; j < 150; j++)
-            first_vn[i][j] = false;
+            first_vn[i][j] = false;  //to store first_vn
 
 
 
