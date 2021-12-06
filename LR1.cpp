@@ -71,7 +71,7 @@ void Read_G()
         length[i] = j;
     }
 
-    G[0][0] = 'S';
+    G[0][0] = 'W';
     G[0][1] = G[1][0];  //拓广文法
     length[0] = 2;
 
@@ -381,13 +381,27 @@ int main() {
 
     get_action();  //generate action table
 
-    for (int i = 0; i < Ccount; i++)  //Ccount: number of LR1 items
+    cout << "输入的表达式为：" << endl;
+    for (int z = 1; z <= number; z++) {
+        cout << G[z][0] << "->";
+        for (int n = 1; n < length[z]; n++) {
+            cout << G[z][n];
+        }
+        cout << endl;
+    }
+
+    cout << "-----------------------------------------------------------------------------------------------" << endl;
+
+    cout << "规约过程所用的表达式为：" << endl;
+
+    for (int i = 0; i <= Ccount; i++)  //Ccount: number of LR1 items
         for (int j = 0; j < size_act_table[i]; j++) {
             char   tp = action_table[i][j].ch;
             int    t = action_table[i][j].nxt_sta;
             act_ofile << "(" << i << "," << tp << "," << t << ")" << endl;
         }
 
+    
     bsize = 0;
     do {
         input_ifile >> buffer[bsize];
@@ -430,8 +444,10 @@ int main() {
 
     } while (done == false && err == false);
 
+
     if (!done)
         cout << "ERROR X" << endl;
+ 
     G_ifile.close();
     input_ifile.close();
     items_ofile.close();
